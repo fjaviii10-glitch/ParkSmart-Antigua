@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkSmart Antigua - App Completa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .app-screen { display: none; }
+        .app-screen.active { display: block; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 flex justify-center items-center min-h-screen p-0 sm:p-4 font-sans text-gray-800">
+
+    <div class="w-full max-w-sm sm:max-w-md bg-slate-50 h-[100vh] sm:h-[840px] sm:rounded-[40px] shadow-2xl overflow-hidden border-0 sm:border-8 sm:border-slate-800 flex flex-col relative">
+        
+        <!-- Barra de Estado Simulada -->
+        <div class="bg-amber-800 text-white text-xs px-6 pt-3 pb-1 flex justify-between items-center font-medium select-none">
+            <span>10:15</span>
+            <div class="flex items-center space-x-2">
+                <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+                <i data-lucide="battery" class="w-4 h-4"></i>
+            </div>
+        </div>
+
+        <!-- Encabezado -->
+        <header class="bg-amber-800 text-white px-5 pb-4 pt-2 shadow-md flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">ParkSmart <span class="text-amber-300">Antigua</span></h1>
+                <p class="text-[11px] text-amber-200">Red Inteligente de Parqueos Históricos</p>
+            </div>
+            <div class="bg-amber-900/80 p-2 rounded-full border border-amber-600/40">
+                <i data-lucide="user" class="w-5 h-5 text-amber-200"></i>
+            </div>
+        </header>
+
+        <!-- CONTENEDOR DE PANTALLAS -->
+        <main class="flex-1 overflow-y-auto p-4 space-y-4">
+
+            <!-- PANTALLA 1: BÚSQUEDA Y DISPONIBILIDAD -->
+            <div id="screen-explore" class="app-screen active fade-in space-y-4">
+                
+                <!-- BANNER DE SUSCRIPCIÓN -->
+                <div class="bg-gradient-to-r from-amber-600 to-amber-800 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex items-center justify-between">
+                    <div class="z-10 w-2/3">
+                        <h3 class="font-bold text-sm flex items-center gap-1"><i data-lucide="crown" class="w-4 h-4 text-amber-300"></i> Plan Residente</h3>
+                        <p class="text-[11px] text-amber-100 mt-1 leading-tight">Parqueo ilimitado en Antigua por una tarifa mensual fija.</p>
+                    </div>
+                    <button onclick="showScreen('screen-subscription')" class="z-10 bg-white text-amber-900 text-xs font-bold px-3 py-2 rounded-xl shadow-md hover:bg-amber-50 transition">
+                        Elegir Plan
+                    </button>
+                    <i data-lucide="car" class="w-16 h-16 absolute -right-2 -bottom-3 text-white opacity-20"></i>
+                </div>
+
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3.5 text-gray-400"></i>
+                    <input type="text" id="search-input" onkeyup="filterParkings()" placeholder="Buscar hotel o parqueo..." class="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-700 shadow-sm">
+                </div>
+
+                <div class="flex space-x-2 overflow-x-auto pb-1 text-xs">
+                    <button onclick="filterType('all')" class="bg-amber-800 text-white px-3 py-1.5 rounded-lg font-medium shadow-sm">Todos</button>
+                    <button onclick="filterType('Hoteles')" class="bg-white border text-gray-600 px-3 py-1.5 rounded-lg font-medium">Hoteles</button>
+                    <button onclick="filterType('Centro')" class="bg-white border text-gray-600 px-3 py-1.5 rounded-lg font-medium">Casco Central</button>
+                </div>
+
+                <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Parqueos Afiliados con Reserva</h2>
+                <div id="parking-list" class="space-y-3"></div>
+            </div>
+
+            <!-- PANTALLA 2: PLANES DE SUSCRIPCIÓN (Actualizados según imagen) -->
+            <div id="screen-subscription" class="app-screen fade-in space-y-4">
+                <button onclick="showScreen('screen-explore')" class="text-xs text-amber-800 font-semibold flex items-center gap-1">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al mapa
+                </button>
+
+                <div class="text-center space-y-1 my-1">
+                    <h2 class="text-base font-bold text-gray-900">Ingresos por Suscripción Mensual</h2>
+                    <p class="text-[11px] text-gray-500">Afiliación directa y acceso ilimitado con tu código QR.</p>
+                </div>
+
+                <!-- Plan Básico (Q199) -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-gray-900 text-sm">Plan Básico</h3>
+                        <span class="text-amber-700 font-black text-lg">Q199 <span class="text-[10px] text-gray-500 font-normal">/ mes</span></span>
+                    </div>
+                    <p class="text-[11px] text-gray-500 mb-3">Ideal para usuarios con necesidades estándar de estacionamiento.</p>
+                    <button onclick="selectSubscription('Plan Básico', 199)" class="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                        Elegir Plan Básico
+                    </button>
+                </div>
+
+                <!-- Plan Profesional (Q349) - Destacado -->
+                <div class="bg-white border-2 border-amber-600 rounded-2xl p-4 shadow-md relative">
+                    <div class="absolute top-0 right-0 bg-amber-600 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-bl-xl rounded-tr-xl uppercase">
+                        Recomendado
+                    </div>
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-gray-900 text-sm">Plan Profesional</h3>
+                        <span class="text-amber-700 font-black text-lg">Q349 <span class="text-[10px] text-gray-500 font-normal">/ mes</span></span>
+                    </div>
+                    <p class="text-[11px] text-gray-500 mb-3">Referencia del escenario. Acceso prioritario en hoteles.</p>
+                    <button onclick="selectSubscription('Plan Profesional', 349)" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow">
+                        Elegir Plan Profesional
+                    </button>
+                </div>
+
+                <!-- Plan Premium (Q499) -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-gray-900 text-sm">Plan Premium</h3>
+                        <span class="text-amber-700 font-black text-lg">Q499 <span class="text-[10px] text-gray-500 font-normal">/ mes</span></span>
+                    </div>
+                    <p class="text-[11px] text-gray-500 mb-3">Cobertura total, múltiples placas y máxima prioridad.</p>
+                    <button onclick="selectSubscription('Plan Premium', 499)" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-2.5 rounded-xl text-xs transition">
+                        Elegir Plan Premium
+                    </button>
+                </div>
+            </div>
+
+            <!-- PANTALLA 3: RESERVA EXPRESS (Con Mapas) -->
+            <div id="screen-reserve" class="app-screen fade-in space-y-4">
+                <button onclick="showScreen('screen-explore')" class="text-xs text-amber-800 font-semibold flex items-center gap-1">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al mapa de Antigua
+                </button>
+
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 id="res-title" class="font-bold text-gray-900 text-base">---</h3>
+                            <p id="res-zone" class="text-xs text-gray-500">---</p>
+                        </div>
+                        <span id="res-badge" class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold">-- libres</span>
+                    </div>
+
+                    <!-- BOTONES DE NAVEGACIÓN GPS -->
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <a id="btn-gmaps" href="#" target="_blank" class="bg-blue-50 border border-blue-200 text-blue-700 p-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-blue-100 transition">
+                            <i data-lucide="map" class="w-3.5 h-3.5"></i> Google Maps
+                        </a>
+                        <a id="btn-waze" href="#" target="_blank" class="bg-sky-50 border border-sky-200 text-sky-700 p-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-sky-100 transition">
+                            <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Waze
+                        </a>
+                    </div>
+
+                    <hr class="border-gray-100">
+                    <div class="text-xs text-gray-600 space-y-1">
+                        <p class="flex justify-between"><span>Tarifa por hora:</span> <strong id="res-rate" class="text-gray-900">Q 0.00</strong></p>
+                        <p class="flex justify-between"><span>Tolerancia de llegada:</span> <span class="text-amber-700 font-medium">15 min gratis</span></p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                    <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider">Detalles del Vehículo</h4>
+                    <div>
+                        <label class="text-xs text-gray-600 font-medium">Placa del Vehículo:</label>
+                        <input type="text" id="input-plate-res" placeholder="Ej. P-123ABC" class="w-full mt-1 p-2.5 border rounded-xl text-sm font-semibold uppercase tracking-wider focus:ring-2 focus:ring-amber-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-medium">Tiempo Estimado de Estancia:</label>
+                        <select id="select-hours" onchange="calculateTotal()" class="w-full mt-1 p-2.5 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-700 focus:outline-none">
+                            <option value="1">1 hora</option>
+                            <option value="2" selected>2 horas</option>
+                            <option value="3">3 horas</option>
+                            <option value="4">4 horas</option>
+                        </select>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border flex justify-between items-center text-sm">
+                        <span class="font-semibold text-gray-700">Total a pagar:</span>
+                        <span id="res-total" class="font-black text-amber-800 text-lg">Q 0.00</span>
+                    </div>
+                </div>
+
+                <button onclick="goToPaymentFromReserve()" class="w-full bg-amber-800 hover:bg-amber-900 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex justify-center items-center gap-2">
+                    Continuar al Pago <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- PANTALLA 4: PASARELA DE PAGO CON TARJETA FUNCIONAL -->
+            <div id="screen-payment" class="app-screen fade-in space-y-4">
+                <button onclick="showScreen('screen-explore')" class="text-xs text-amber-800 font-semibold flex items-center gap-1">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Cancelar y Volver
+                </button>
+
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                    <h3 class="font-bold text-gray-900 text-sm flex items-center gap-2">
+                        <i data-lucide="credit-card" class="w-4 h-4 text-amber-800"></i> Pasarela de Pago Segura
+                    </h3>
+                    <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs space-y-1">
+                        <p class="flex justify-between"><span>Concepto:</span> <strong id="pay-concept" class="text-gray-800 font-bold">---</strong></p>
+                        <p class="flex justify-between"><span>Total a cobrar:</span> <strong id="pay-amount" class="text-amber-800 font-bold">Q 0.00</strong></p>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <div id="pay-plate-container">
+                            <label class="text-gray-600 font-medium">Placa del Vehículo a registrar:</label>
+                            <input type="text" id="pay-plate-input" placeholder="Ej. P-123ABC" class="w-full mt-1 p-2.5 border rounded-xl text-sm font-bold uppercase focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-600 font-medium">Nombre del Titular:</label>
+                            <input type="text" id="pay-card-name" value="Francisco Javier Ayala" class="w-full mt-1 p-2.5 border rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-600 font-medium">Número de Tarjeta (Crédito / Débito):</label>
+                            <input type="text" id="pay-card-number" placeholder="4532 8920 1049 4821" maxlength="19" class="w-full mt-1 p-2.5 border rounded-xl text-sm font-mono focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-gray-600 font-medium">Fecha Vencimiento:</label>
+                                <input type="text" id="pay-card-exp" placeholder="MM/AA" maxlength="5" class="w-full mt-1 p-2.5 border rounded-xl text-sm text-center focus:outline-none focus:border-amber-500">
+                            </div>
+                            <div>
+                                <label class="text-gray-600 font-medium">Código CVV:</label>
+                                <input type="password" id="pay-card-cvv" placeholder="123" maxlength="4" class="w-full mt-1 p-2.5 border rounded-xl text-sm text-center focus:outline-none focus:border-amber-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-gray-600 font-medium">NIT (Facturación FEL SAT):</label>
+                            <input type="text" id="pay-nit" value="2360124-K" class="w-full mt-1 p-2.5 border rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="processPayment()" id="btn-pay" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex justify-center items-center gap-2">
+                    <i data-lucide="lock" class="w-4 h-4"></i> Pagar y Generar Pase QR
+                </button>
+            </div>
+
+            <!-- PANTALLA 5: TICKET DIGITAL / PASE QR -->
+            <div id="screen-ticket" class="app-screen fade-in space-y-4 text-center">
+                <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-lg space-y-4 relative overflow-hidden">
+                    <div class="bg-emerald-50 text-emerald-700 p-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i> <span id="ticket-status">Reserva Validada</span>
+                    </div>
+
+                    <div>
+                        <h3 id="ticket-title" class="font-bold text-gray-900 text-lg">---</h3>
+                        <p id="ticket-plate" class="text-xs text-gray-500 font-semibold tracking-wider uppercase mt-0.5">Placa: ---</p>
+                    </div>
+
+                    <div class="flex justify-center p-3 bg-slate-50 border rounded-2xl w-fit mx-auto shadow-inner">
+                        <div id="qrcode"></div>
+                    </div>
+                    <p class="text-[11px] text-gray-400">Escanee este código en la garita de ingreso</p>
+
+                    <!-- SECCIÓN DINÁMICA: MAPAS O VIGENCIA SUSCRIPCIÓN -->
+                    <div id="ticket-nav-section" class="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-xs space-y-2 hidden">
+                        <span class="font-bold text-amber-900 block">¿Cómo llegar al parqueo?</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <a id="ticket-gmaps" href="#" target="_blank" class="bg-blue-600 text-white p-2 rounded-xl font-bold flex items-center justify-center gap-1 shadow-sm">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Maps
+                            </a>
+                            <a id="ticket-waze" href="#" target="_blank" class="bg-sky-500 text-white p-2 rounded-xl font-bold flex items-center justify-center gap-1 shadow-sm">
+                                <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Waze
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div id="ticket-sub-section" class="bg-slate-50 p-3 rounded-xl border text-xs text-left hidden space-y-1">
+                        <p><span class="text-gray-500 block">Vigencia del Pase:</span><strong class="text-emerald-700 text-sm">Todo el mes de Noviembre</strong></p>
+                        <p class="text-[10px] text-gray-400">Válido en cualquier parqueo afiliado en Antigua Guatemala.</p>
+                    </div>
+
+                    <hr class="border-dashed border-gray-200">
+
+                    <div class="grid grid-cols-2 gap-2 text-left text-xs bg-slate-50 p-3 rounded-xl border">
+                        <div>
+                            <span class="text-gray-400 block">ID Pase:</span>
+                            <strong id="ticket-id" class="text-gray-800 font-mono">#PSA-9102</strong>
+                        </div>
+                        <div id="ticket-timer-container">
+                            <span class="text-gray-400 block">Tiempo Restante:</span>
+                            <strong class="text-emerald-600 font-bold">14 min 59 seg</strong>
+                        </div>
+                        <div id="ticket-sub-status" class="hidden">
+                            <span class="text-gray-400 block">Estado:</span>
+                            <strong class="text-emerald-600 font-bold">Activo</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="showScreen('screen-explore')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl">
+                    Finalizar Demostración
+                </button>
+            </div>
+
+        </main>
+
+        <nav class="bg-white border-t border-gray-200 px-6 py-2.5 flex justify-around items-center text-gray-400 select-none">
+            <button onclick="showScreen('screen-explore')" class="flex flex-col items-center space-y-0.5 text-amber-800">
+                <i data-lucide="map-pin" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Antigua</span>
+            </button>
+            <button onclick="showScreen('screen-subscription')" class="flex flex-col items-center space-y-0.5 hover:text-amber-800">
+                <i data-lucide="crown" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Planes</span>
+            </button>
+            <button class="flex flex-col items-center space-y-0.5 hover:text-amber-800">
+                <i data-lucide="user" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Perfil</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        const parkings = [
+            { 
+                id: 1, 
+                name: "Hotel Camino Real Antigua", 
+                category: "Hoteles", 
+                zone: "Calle del Hermano Pedro", 
+                rate: 20, 
+                spots: 35, 
+                color: "green",
+                gmaps: "https://maps.google.com/?q=Hotel+Camino+Real+Antigua+Guatemala",
+                waze: "https://waze.com/ul?q=Hotel+Camino+Real+Antigua+Guatemala"
+            },
+            { 
+                id: 2, 
+                name: "Hotel Casa Santo Domingo", 
+                category: "Hoteles", 
+                zone: "3a Calle Oriente", 
+                rate: 25, 
+                spots: 50, 
+                color: "green",
+                gmaps: "https://maps.google.com/?q=Casa+Santo+Domingo+Antigua+Guatemala",
+                waze: "https://waze.com/ul?q=Casa+Santo+Domingo+Antigua+Guatemala"
+            },
+            { 
+                id: 3, 
+                name: "Posada de Don Rodrigo", 
+                category: "Hoteles", 
+                zone: "5a Avenida Norte", 
+                rate: 20, 
+                spots: 18, 
+                color: "yellow",
+                gmaps: "https://maps.google.com/?q=Posada+de+Don+Rodrigo+Antigua+Guatemala",
+                waze: "https://waze.com/ul?q=Posada+de+Don+Rodrigo+Antigua+Guatemala"
+            },
+            { 
+                id: 4, 
+                name: "Parqueo Central San José", 
+                category: "Centro", 
+                zone: "Cerca del Parque Central", 
+                rate: 15, 
+                spots: 12, 
+                color: "green",
+                gmaps: "https://maps.google.com/?q=Parque+Central+Antigua+Guatemala",
+                waze: "https://waze.com/ul?q=Parque+Central+Antigua+Guatemala"
+            }
+        ];
+
+        let selectedParking = null;
+        let currentTransaction = { type: '', concept: '', amount: 0, plate: '' };
+        lucide.createIcons();
+
+        function renderParkings(items) {
+            const container = document.getElementById('parking-list');
+            container.innerHTML = '';
+            items.forEach(p => {
+                let badgeColor = p.color === 'green' ? 'bg-emerald-100 text-emerald-800' : 
+                                 p.color === 'yellow' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800';
+                container.innerHTML += `
+                    <div onclick="selectParking(${p.id})" class="p-3.5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-amber-400 cursor-pointer flex justify-between items-center transition">
+                        <div class="space-y-1">
+                            <h3 class="font-bold text-gray-800 text-sm">${p.name}</h3>
+                            <p class="text-xs text-gray-500 flex items-center gap-1">
+                                <span>${p.zone}</span> • <span class="font-semibold text-gray-700">Q${p.rate}.00/hr</span>
+                            </p>
+                        </div>
+                        <span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold">${p.spots} Libres</span>
+                    </div>
+                `;
+            });
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function selectParking(id) {
+            selectedParking = parkings.find(p => p.id === id);
+            document.getElementById('res-title').innerText = selectedParking.name;
+            document.getElementById('res-zone').innerText = selectedParking.zone;
+            document.getElementById('res-rate').innerText = `Q ${selectedParking.rate}.00`;
+            document.getElementById('res-badge').innerText = `${selectedParking.spots} Libres`;
+            
+            document.getElementById('btn-gmaps').href = selectedParking.gmaps;
+            document.getElementById('btn-waze').href = selectedParking.waze;
+
+            calculateTotal();
+            showScreen('screen-reserve');
+        }
+
+        function calculateTotal() {
+            const hours = parseInt(document.getElementById('select-hours').value);
+            const total = selectedParking.rate * hours;
+            document.getElementById('res-total').innerText = `Q ${total}.00`;
+        }
+
+        // Flujo Reserva de Parqueo
+        function goToPaymentFromReserve() {
+            const plate = document.getElementById('input-plate-res').value.trim();
+            if (!plate) { alert("Ingrese el número de placa."); return; }
+            
+            const hours = parseInt(document.getElementById('select-hours').value);
+            const total = selectedParking.rate * hours;
+            
+            currentTransaction = { type: 'reservation', concept: `Reserva: ${selectedParking.name}`, amount: total, plate: plate };
+            
+            document.getElementById('pay-plate-input').value = plate;
+            document.getElementById('pay-concept').innerText = currentTransaction.concept;
+            document.getElementById('pay-amount').innerText = `Q ${currentTransaction.amount}.00`;
+            
+            showScreen('screen-payment');
+        }
+
+        // Flujo Suscripción
+        function selectSubscription(planName, price) {
+            currentTransaction = { type: 'subscription', concept: planName, amount: price, plate: '' };
+            
+            document.getElementById('pay-plate-input').value = '';
+            document.getElementById('pay-concept').innerText = currentTransaction.concept;
+            document.getElementById('pay-amount').innerText = `Q ${currentTransaction.amount}.00`;
+            
+            showScreen('screen-payment');
+        }
+
+        // Procesar Pago Final (Ambos Flujos)
+        function processPayment() {
+            const plateInput = document.getElementById('pay-plate-input').value.trim().toUpperCase();
+            if (!plateInput) { alert("La placa es requerida para el Pase QR."); return; }
+            
+            const cardNumber = document.getElementById('pay-card-number').value.trim();
+            const cardExp = document.getElementById('pay-card-exp').value.trim();
+            const cardCvv = document.getElementById('pay-card-cvv').value.trim();
+
+            if (!cardNumber || !cardExp || !cardCvv) {
+                alert("Por favor complete los datos de su tarjeta (Número, Fecha y Código CVV).");
+                return;
+            }
+
+            currentTransaction.plate = plateInput;
+
+            const btn = document.getElementById('btn-pay');
+            btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Generando QR...`;
+            lucide.createIcons();
+
+            setTimeout(() => {
+                btn.innerHTML = `<i data-lucide="lock" class="w-4 h-4"></i> Pagar y Generar Pase QR`;
+                
+                // Configurar Tarjeta/Pase QR
+                document.getElementById('ticket-title').innerText = currentTransaction.concept;
+                document.getElementById('ticket-plate').innerText = `Placa Asignada: ${currentTransaction.plate}`;
+                document.getElementById('ticket-id').innerText = `#PSA-${Math.floor(1000 + Math.random() * 9000)}`;
+
+                const qrContainer = document.getElementById("qrcode");
+                qrContainer.innerHTML = "";
+
+                if (currentTransaction.type === 'reservation') {
+                    document.getElementById('ticket-status').innerText = 'Reserva Activa';
+                    document.getElementById('ticket-nav-section').classList.remove('hidden');
+                    document.getElementById('ticket-sub-section').classList.add('hidden');
+                    document.getElementById('ticket-timer-container').classList.remove('hidden');
+                    document.getElementById('ticket-sub-status').classList.add('hidden');
+                    
+                    document.getElementById('ticket-gmaps').href = selectedParking.gmaps;
+                    document.getElementById('ticket-waze').href = selectedParking.waze;
+                    
+                    new QRCode(qrContainer, { text: JSON.stringify({ app: "ParkSmart", type: "Reserva", hotel: selectedParking.name, plate: currentTransaction.plate }), width: 140, height: 140, colorDark: "#0f172a" });
+                } else {
+                    document.getElementById('ticket-status').innerText = 'Pase Premium Activo';
+                    document.getElementById('ticket-nav-section').classList.add('hidden');
+                    document.getElementById('ticket-sub-section').classList.remove('hidden');
+                    document.getElementById('ticket-timer-container').classList.add('hidden');
+                    document.getElementById('ticket-sub-status').classList.remove('hidden');
+                    
+                    new QRCode(qrContainer, { text: JSON.stringify({ app: "ParkSmart", type: "Suscripcion", plan: currentTransaction.concept, plate: currentTransaction.plate }), width: 140, height: 140, colorDark: "#0f172a" });
+                }
+                
+                showScreen('screen-ticket');
+            }, 1200);
+        }
+
+        function filterParkings() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            renderParkings(parkings.filter(p => p.name.toLowerCase().includes(query) || p.zone.toLowerCase().includes(query)));
+        }
+
+        function filterType(type) {
+            if (type === 'all') renderParkings(parkings);
+            else renderParkings(parkings.filter(p => p.category === type));
+        }
+
+        renderParkings(parkings);
+    </script>
+</body>
+</html>
